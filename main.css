@@ -1,0 +1,30 @@
+
+.content {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+}
+
+.centre {
+  position: relative;
+  left: 50%;
+  top: 50%;
+}
+
+.billboard {
+  position: relative;
+  top: -100px;
+  left: -100px;
+  width: 200px;
+  height: 200px;
+  background-color: white;
+  border-radius: 10px;
+  border: 3px white solid;
+  box-shadow: black 0px 10px 35px;
+}
+
+.billboard .title {
+
+position: absolute;width:  100%;height: 45px;background: linear-gradient(red, blue);}
