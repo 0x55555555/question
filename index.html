@@ -1,11 +1,58 @@
 <html>
   <head>
     <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="jquery-2.1.4.js"></script>
+    <script>
+
+var initial = null;
+var initial_mouse = null;
+
+var divMove = function(e)
+{
+  var relativeX = e.clientX - initial_mouse[0];
+  var relativeY = e.clientY - initial_mouse[1];
+  var div = document.getElementById('bb');
+
+
+  div.style.transform = "translate(" +
+    relativeX + 'px,' +
+    relativeY + 'px' +
+  ")";
+};
+
+var mouseUp = function()
+{
+  window.removeEventListener('mousemove', divMove, true);
+
+  var div = document.getElementById('bb');
+    div.style.webkitTransform = "translate(0, 0)";
+
+  initial_mouse = null;
+};
+
+var mouseDown = function(e)
+{
+  window.addEventListener('mousemove', divMove, true);
+
+  initial_mouse = [ e.clientX, e.clientY ];
+  var div = document.getElementById('bb');
+  initial = [ parseFloat(div.style.left), parseFloat(div.style.top) ];
+};
+
+window.onload = function()
+{
+  document.getElementById('bb').addEventListener('mousedown', mouseDown, false);
+  window.addEventListener('mouseup', mouseUp, false);
+};
+
+    </script>
   </head>
   <body>
     <div class="content">
       <div class="centre">
-        <div class="billboard">
+        <div class="billboard_reminder">
+        </div>
+        <div class="billboard noselect" id="bb" style="transform:">
           <div class="title">
             <h1>
               Sweet Thing
