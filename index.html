@@ -1,11 +1,78 @@
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.7, maximum-scale=0.7, user-scalable=0">
     <link rel="stylesheet" type="text/css" href="main.css">
     <script src="jquery-2.1.4.js"></script>
     <script>
 
+var show_message = function(msg, timeout)
+{
+  var div = document.getElementById('message');
+  div.innerHTML = msg;
+
+  div.style.opacity = "0.5";
+
+  setTimeout(function() {
+    if (div.innerHTML == msg) {
+      div.style.opacity = "0.0";
+    }
+  }, timeout);
+}
+
 var initial = null;
 var initial_mouse = null;
+var position = null;
+var velocity = null;
+
+var transformTo = function(pos)
+{
+  var div = document.getElementById('bb');
+
+  var transform = "translate(" +
+    pos[0] + 'px,' +
+    pos[1] + 'px' +
+  ")";
+
+  if (pos[0] != 0 || pos[1] != 0) {
+    transform += " rotateX(-5deg)";
+  }
+
+  div.style.transform = transform;
+  position = pos;
+}
+
+
+var ask_question = function(title, content)
+{
+  var titleDiv = document.getElementById('question_title');
+  var contentDiv = document.getElementById('question_content');
+
+  titleDiv.innerHTML = title;
+  contentDiv.innerHTML = content;
+
+  transformTo([0, 0]);
+}
+
+var questions = [
+  { title: "Sweet thing", content: "pork pork pork" },
+  { title: "Sweet thing1", content: "pork pork pork4" },
+  { title: "Sweet thing2", content: "pork pork pork3" },
+  { title: "Sweet thing3", content: "pork pork pork2" },
+]
+var next_index = 0;
+
+var next_question = function()
+{
+  if (next_index < questions.length) {
+    var q = questions[next_index];
+    ask_question(q.title, q.content);
+    next_index += 1;
+  }
+  else
+  {
+    show_message("Answered everything");
+  }
+}
 
 var divMove = function(e)
 {
@@ -13,11 +80,14 @@ var divMove = function(e)
   var relativeY = e.clientY - initial_mouse[1];
   var div = document.getElementById('bb');
 
+  if (position) {
+    velocity = [
+      relativeX - position[0],
+      relativeY - position[1]
+    ];
+  };
 
-  div.style.transform = "translate(" +
-    relativeX + 'px,' +
-    relativeY + 'px' +
-  ")";
+  transformTo([ relativeX, relativeY ]);
 };
 
 var mouseUp = function()
@@ -25,8 +95,47 @@ var mouseUp = function()
   window.removeEventListener('mousemove', divMove, true);
 
   var div = document.getElementById('bb');
-    div.style.webkitTransform = "translate(0, 0)";
 
+  var count = 10;
+  var step = 3;
+  var step_div = 5;
+  var duration = 16.66 * step;
+  var min_flick = 600;
+
+  var location = [ position[0], position[1] ];
+  var speedX = (position[0] - initial[0]) / step_div;
+  var speedY = (position[1] - initial[1]) / step_div;
+
+  var callback;
+  callback = function() {
+    location[0] += speedX;
+    location[1] += speedY;
+    transformTo(location);
+    if (count > 0) {
+      setTimeout(callback, duration);
+      count -= 1;
+    }
+    else {
+      var xdiff = location[0] - initial[0];
+      var ydiff = location[1] - initial[1];
+      var dist = Math.sqrt(xdiff * xdiff + ydiff * ydiff);
+      if (dist < min_flick) {
+        div.style.webkitTransform = "translate(0, 0)";
+        show_message("Failed to flick it, try harder", 1000);
+      }
+      else {
+        location[0] += speedX * 10;
+        location[1] += speedY * 10;
+        transformTo(location);
+        show_message("Boom, flicked it", 1000);
+        next_question()
+      }
+    }
+  };
+  callback();
+
+  velocity = null;
+  position = null;
   initial_mouse = null;
 };
 
@@ -36,13 +145,25 @@ var mouseDown = function(e)
 
   initial_mouse = [ e.clientX, e.clientY ];
   var div = document.getElementById('bb');
-  initial = [ parseFloat(div.style.left), parseFloat(div.style.top) ];
+  initial = [ 0, 0 ];
+
+  divMove(e);
 };
+
+var touchStart = function(e)
+{
+  touchStart(e);
+}
 
 window.onload = function()
 {
   document.getElementById('bb').addEventListener('mousedown', mouseDown, false);
   window.addEventListener('mouseup', mouseUp, false);
+
+  document.getElementById('bb').addEventListener('touchstart', touchStart, false);
+
+  next_question();
+  show_message("Flick the card", 1000);
 };
 
     </script>
@@ -52,12 +173,18 @@ window.onload = function()
       <div class="centre">
         <div class="billboard_reminder">
         </div>
+
         <div class="billboard noselect" id="bb" style="transform:">
           <div class="title">
-            <h1>
-              Sweet Thing
-            </h1>
+            <h1 id="question_title"></h1>
           </div>
+
+          <div class="content">
+            <p id="question_content"></p>
+          </div>
+        </div>
+
+        <div id="message" style="opacity: 0.0">
         </div>
       </div>
     </div>
